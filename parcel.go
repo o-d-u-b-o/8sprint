@@ -16,11 +16,11 @@ func NewParcelStore(db *sql.DB) ParcelStore {
 
 func (s ParcelStore) Add(p Parcel) (int, error) {
 	// реализуйте добавление строки в таблицу parcel, используйте данные из переменной p
-	db, err := s.db.Prepare("INSERT INTO parcel (client, address, status) VALUES (?, ?, ?)")
+	db, err := s.db.Prepare("INSERT INTO parcel (client, address, status, Created_At) VALUES (?, ?, ?, ?)")
 	if err != nil {
 		return 0, err
 	}
-	res, err := db.Exec(p.Client, p.Address, p.Status)
+	res, err := db.Exec(p.Client, p.Address, p.Status, p.Created_At)
 	if err != nil {
 		return 0, err
 	}
