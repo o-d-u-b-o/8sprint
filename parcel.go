@@ -16,11 +16,8 @@ func NewParcelStore(db *sql.DB) ParcelStore {
 
 func (s ParcelStore) Add(p Parcel) (int, error) {
 	// реализуйте добавление строки в таблицу parcel, используйте данные из переменной p
-	db, err := s.db.Prepare("INSERT INTO parcel (client, address, status, Created_At) VALUES (?, ?, ?, ?)")
-	if err != nil {
-		return 0, err
-	}
-	res, err := db.Exec(p.Client, p.Address, p.Status, p.Created_At)
+	query := "INSERT INTO parcel (client, address, status, created_at) VALUES (?, ?, ?, ?)"
+	res, err := s.db.Exec(query, p.Client, p.Address, p.Status, p.Created_At)
 	if err != nil {
 		return 0, err
 	}
@@ -37,7 +34,8 @@ func (s ParcelStore) Get(number int) (Parcel, error) {
 	// реализуйте чтение строки по заданному number
 	// здесь из таблицы должна вернуться только одна строка
 	var p Parcel
-	err := s.db.QueryRow("SELECT number, client, address, status FROM parcel WHERE number = ?", number).Scan(&p.Number, &p.Client, &p.Address, &p.Status)
+	err := s.db.QueryRow("SELECT number, client, address, status, created_at FROM parcel WHERE number = ?", number).
+		Scan(&p.Number, &p.Client, &p.Address, &p.Status, &p.Created_At)
 	if err != nil {
 		return Parcel{}, err
 	}
@@ -48,7 +46,7 @@ func (s ParcelStore) Get(number int) (Parcel, error) {
 func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 	// реализуйте чтение строк из таблицы parcel по заданному client
 	// здесь из таблицы может вернуться несколько строк
-	rows, err := s.db.Query("SELECT number, client, address, status FROM parcel WHERE client = ?", client)
+	rows, err := s.db.Query("SELECT number, client, address, status, created_at FROM parcel WHERE client = ?", client)
 	if err != nil {
 		return nil, err
 	}
@@ -58,11 +56,15 @@ func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 	var res []Parcel
 	for rows.Next() {
 		var p Parcel
-		err := rows.Scan(&p.Number, &p.Client, &p.Address, &p.Status)
+		err := rows.Scan(&p.Number, &p.Client, &p.Address, &p.Status, &p.Created_At)
 		if err != nil {
 			return nil, err
 		}
 		res = append(res, p)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return res, nil
